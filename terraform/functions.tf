@@ -1,34 +1,37 @@
-resource "google_cloudfunctions2_function" "nps-sanitation" {
-    name     = "${var.environment}-${var.app}-register"
-    location = var.region
+resource "google_cloudfunctions_function" "wall-register" {
+    name     = "${var.app}-register"
     description = "User check in function"
-
+    region = var.region
     labels = {
         app = var.app
-        environment = var.environment
+    }
+    entry_point = "register"
+    runtime     = "nodejs18"
+    max_instances = 5
+    available_memory_mb = 128
+    timeout = 60
+
+    trigger_http = true
+    https_trigger_security_level = "SECURE_ALWAYS"
+    environment_variables = {
+    }
+    source_repository {
+      url = "https://source.developers.google.com/projects/${var.project_id}/repos/${var.repo_name}/moveable-aliases/${var.branch_name}/paths/functions/register"
     }
 
-    build_config {
-        runtime     = "nodejs16"
-        entry_point = "register"
-        source {
-            repo_source {
-                project_id = var.project_id
-                repo_name = "wall"
-                branch_name = "main"
-                dir = "functions/register"
-            }
-        }
-    }
-
-    service_config {
-        max_instance_count = 5
-        available_memory   = "256Mi"
-        timeout_seconds    = 60
-        environment_variables = {
-        }
-    }
-
-    depends_on            = [
+    depends_on = [
     ]
+}
+
+resource "google_cloudfunctions_function_iam_member" "invoker" {
+  project        = google_cloudfunctions_function.wall-register.project
+  region         = google_cloudfunctions_function.wall-register.region
+  cloud_function = google_cloudfunctions_function.wall-register.name
+
+  role   = "roles/cloudfunctions.invoker"
+  member = "allUsers"
+
+  depends_on = [
+    google_cloudfunctions_function.wall-register
+  ]
 }

@@ -10,6 +10,10 @@ variable "app" {
     default = "wall"
 }
 
-variable "environment" {
-    default = "staging"
+variable "repo_name" {
+    default = "github_bnsouzas_wall"
+}
+
+variable "branch_name" {
+    default = "main"
 }
